@@ -11,7 +11,7 @@ LIBS=-lm -ldl /work/group/matthewsgroup/apps/docopt.cpp/libdocopt.a
 #
 ifeq ($(patsubst m3login%,m3login,$(shell hostname)),m3login)
 	CXX=g++
-	CXXFLAGS=-fopenmp -std=c++17 -march=haswell -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS
+	CXXFLAGS=-fopenmp -std=c++17 -march=haswell -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS -DPROFILE
 	LDFLAGS=-fopenmp -fsanitize=address
 	BLAS=-lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core
 	LAPACK=

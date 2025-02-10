@@ -25,7 +25,7 @@ static const char USAGE[] =
 R"(EnergyAnalysis.
 
   Usage:
-    energyAnalysis --method=<method>  --npair=<npair> [--seed=<seed>] 
+    energyAnalysis --mol=<mol> --method=<method> --basis=<basis>
     energyAnalysis (-h | --help)
     energyAnalysis --version
 
@@ -49,17 +49,14 @@ int parse_input(const std::map<std::string,docopt::value> args,
        std::cout << arg.first << ": " <<arg.second << std::endl; 
 #endif
 
-       /* Ftype options */
-       // if (arg.first == "--ftype") 
-       // {
-       //     if (arg.second.asString() == "all") {jobinfo.ftype = Jobinfo::Ftypes::all;}
-       //     else if (arg.second.asString() == "cross") {jobinfo.ftype = Jobinfo::Ftypes::cross;}
-       //     else if (arg.second.asString() == "nocross") {jobinfo.ftype = Jobinfo::Ftypes::nocross;}
-       //     else {printf("Bad ftype option.\n"); return 1;}
-       // }
-       
+       // moleucle options
+       if (arg.first == "--mol") {jobinfo.set_molecule(arg.second.asString());}
+
        // Method options
        if (arg.first == "--method") {jobinfo.set_method(arg.second.asString());}
+
+       // basis options
+       if (arg.first == "--basis") {jobinfo.set_basis(arg.second.asString());}
 
        // Path options
        // if (arg.first == "--grid-path") {jobinfo.set_grid_path(arg.second.asString());}
@@ -67,12 +64,8 @@ int parse_input(const std::map<std::string,docopt::value> args,
        // if (arg.first == "--points-sets-path") {jobinfo.set_points_set_path(arg.second.asString());}
 
 
-       //Point options
-       // if (arg.first == "--ngrid") {jobinfo.num_points = (int) arg.second.asLong();}
-       if (arg.first == "--npair") {jobinfo.num_pairs = (int) arg.second.asLong();}
-
        //Seed options
-       if (arg.first == "--seed" && arg.second) {jobinfo.seed = (int) arg.second.asLong();}
+       // if (arg.first == "--seed" && arg.second) {jobinfo.seed = (int) arg.second.asLong();}
 
        // set relative path.
        jobinfo.set_work_path();

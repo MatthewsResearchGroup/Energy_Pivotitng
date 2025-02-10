@@ -1615,6 +1615,30 @@ void solve_tri(side side, uplo uplo, const cview<2>& A, const view<2>& B, const 
 }
 
 /**
+ * slove the system of equation \f$Ax = y \f$, (`side == LEFT`)  or \f$ xA = y \f$ (`side == RIGHT`).
+ *
+ * This function works with triangular A matrices.
+ *
+ * @param side  Either `LEFT` or `RIGHT`.
+ *
+ * @param A     A `m`x`m` (`side == LEFT`) or `n`x`n` (`side == RIGHT`) matrix or matrix view.
+ *
+ * @param y     The `m` right-hand-side vector. This matrix overwritten by the solution vector `x`.
+ */
+inline void  chaotrsv(char uplo, const cview<2>& A, const view<1>& y)
+{
+    int m = A.length(0);
+    int n = A.length(1);
+
+    assert(m == n);
+    assert(y.length() == m);
+    assert(y.stride() == 1);
+
+    trsv(uplo, 'N', 'N', m, A.data(), A.stride(1), y.data(), y.stride());
+}
+
+
+/**
  * Return the squared 2-norm of the given tensor.
  *
  * @tparam Tensor   The type of the tensor, should be a tensor, view, or partially-indexed tensor.

@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
     //Parse the input and setup the jobinfo struct
     Jobinfo jobinfo;
-    if (parse_input(args,jobinfo) != 0) 
+    if (parse_input(args,jobinfo) == 0) 
     {
         printf("Bad input to energyAnalysis\n");
         exit(1);
@@ -57,6 +57,7 @@ int main(int argc, char **argv) {
                     nps, jobinfo.path_to_xa);
                     // psvec, jobinfo.path_to_points_set);
     int nvo = nv * no;
+    int norb = no + nv ;
     printf("nvrt : %d \nnocc : %d \nngrd : %d \n", nv, no, nps);
 
     double threshold = 1.0e-10;
@@ -104,6 +105,11 @@ int main(int argc, char **argv) {
         Taibj = aibj_from_file(jobinfo.path_to_t, 0, nv, no);
     }
     auto Tmm = Taibj.lowered(2);
+
+
+    double E_exact_c, E_exact_x;
+    E_exact_c = 2 * E1(Vaibj, Taibj);
+    E_exact_x = -E1(Vajbi, Taibj);
 
     //read the THC matrix elements (note offset from start of file, 
     //which skips the number of gridpoints 
@@ -186,11 +192,16 @@ int main(int argc, char **argv) {
 
     std::set<int> selected_points {};
     std::vector<int> pvt;
+    double total_EC = 0.0;
+    double total_EX = 0.0;
+    double total_E = 0.0;
 
-    for(int i = 0; i < 100; i++)
+    int num_grid_keep = nps;
+    for(int i = 0; i < num_grid_keep; i++)
     {
         int idx;
         printf("\n\nThe %d step\n", i);
+        int ngrid = i + 1;
         if (i == 0)
         {
             /*******************************
@@ -231,7 +242,17 @@ int main(int argc, char **argv) {
 
             tensor<1> Eo = E8Co + E8Xo;
 
+            std::cout << "Ene Piv: EX, EC = " << E8Co[i] << ", " << E8Xo[i]  << std::endl;  
             idx = pivot_ene(Eo, selected_points, pvt);
+            //idx = i;
+            
+            double ECs = E8Co[idx];
+            double EXs = E8Xo[idx];
+            total_EC += E8Co[idx];
+            total_EX += E8Xo[idx];
+            total_E += Eo[idx];
+
+            // output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX);
 
             /***********************************************
              *
@@ -269,6 +290,8 @@ int main(int argc, char **argv) {
              ***********************************************/
             
             LPpp[i][i] = sqrt(S[idx][idx]);
+
+            output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i]);
             // for(auto k = 0; k <= i; k++)
             // {
             //     for(auto l = 0; l <= i; l++)
@@ -367,8 +390,8 @@ int main(int argc, char **argv) {
              *   T           T
              *  t \Deltaw = t Y[idx]
              *****************************************/
-            tWPmp[all][i] = tY[all][idx];       
-            tTWPmp[all][i] = tTY[all][idx];       
+            tWPmp[all][i] = tY[all][idx] / (LPpp[i][i]);       
+            tTWPmp[all][i] = tTY[all][idx] / (LPpp[i][i]);       
 
 
 
@@ -394,29 +417,14 @@ int main(int argc, char **argv) {
              ger(1.0, tWPmp[all][i] ,YTW, 1.0, tdPmo); 
 
 
-
         }
         else
         {
 
             tensor<2> WP = WPmp[all][range(i)];
-            for(auto j = 0; j < 5; j++)
-            {
-                for(auto k = 0; k < i; k++)
-                {
-                    printf("%.9f, ", WP[j][k]);
-                }
-                printf("\n");
-            }
             tensor<2> Dmo = Y;
             gemm3(-1.0, WP, WP.T(), Y, 1.0, Dmo);
             tensor<1> MUo = gemmdiag(YT, Dmo);
-            
-            printf("MUo\n");
-            for(auto j = 0; j < 10; j++)
-                printf("%.10f, ", MUo[j]);
-            printf("\n");
-
             
             
             /*************************
@@ -451,14 +459,24 @@ int main(int argc, char **argv) {
             tensor<1> E8Co = 2.0 * gemmdiag(dTPom, gCdPmo) * gemmdiag(dTPom, tdPmo) / (MUo * MUo);
             tensor<1> E8Xo = -1.0 * gemmdiag(dTPom, gXdPmo) * gemmdiag(dTPom, tdPmo) / (MUo * MUo);
 
+            tensor<1> EC = E4Co + E8Co;
+            tensor<1> EX = E4Xo + E8Xo;
+
+            std::cout << "Ene Piv: EX, EC = " << EC[i] << ", " << EX[i]  << std::endl;  
+
 
             tensor<1> Eo = E4Co + E8Co + E4Xo + E8Xo; 
 
-            for(int j = 0; j < 20; j++)
-                printf("%.10f, %.10f, %.10f, %.10f, %.10f\n, ", Eo[j], E4Co[j], E4Xo[j], E8Co[j], E8Xo[j]);
-            printf("\n");
-
             idx = pivot_ene(Eo, selected_points, pvt);
+            // idx = i;
+
+            double ECs = EC[idx];
+            double EXs = EX[idx];
+            total_EC += EC[idx];
+            total_EX += EX[idx];
+            total_E += Eo[idx];
+
+            // output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, );
 
             /***********************************************
              *
@@ -470,7 +488,9 @@ int main(int argc, char **argv) {
              *
              *
              * *********************************************/
+            PROFILE_SECTION("Y update")
             YPmp[all][i] = Y[all][idx];
+            PROFILE_STOP
 
 
             /************************************************
@@ -495,47 +515,21 @@ int main(int argc, char **argv) {
              *
              ***********************************************/
 
+            PROFILE_SECTION("L update")
             auto YPTYS = gemv(YPmp[all][range(i)].T(), YPmp[all][i]); 
-            
-            // printf("YPmp\n");
-            // for(int j = 0; j < 10; j++)
-            // {
-            //     for(int l = 0; l < i; l++)
-            //     {
-            //         printf("%.18f, ", YPmp[j][l]);
-            //     }
-            //     printf("\n");
-            // }
 
+           
 
-            printf("YPTYS\n");
-            for(auto l = 0; l < YPTYS.length(); l++)
-               printf("%.18f", YPTYS[l]);
-            printf("\n");
+            chaotrsv('L', LPpp[range(i)][range(i)], YPTYS);
 
-
-            // trsm('L', 'L', 'N', 'N', i, 1, 1.0, LPpp.data(), i, YPTYS.data(), 1);
-            trsv('L', 'N', 'N', i, LPpp.data(), i, YPTYS.data(), i);
-
-            printf("L00 = %.18f\n", LPpp[0][0]);
-            printf("l_10\n");
-            for(auto l = 0; l < YPTYS.length(); l++)
-               printf("%.18f", YPTYS[l]);
-            printf("\n");
+            // printf("LPpp = %d, %d, %d\n",  LPpp.length(0), LPpp.stride(1),  YPTYS.stride());
+            // trsv('L', 'N', 'N', i, LPpp.data(), LPpp.stride(1), YPTYS.data(), YPTYS.stride());
 
             LPpp[i][range(i)] = YPTYS;
             LPpp[i][i] = sqrt(S[idx][idx] - dot(LPpp[i][range(i)], LPpp[i][range(i)]));
+            PROFILE_STOP
 
-            printf("********** L update ****************\n");
-            for(auto k = 0; k <= i; k++)
-            {
-                for(auto l = 0; l <= i; l++)
-                {
-                    printf("%f, ", LPpp[k][l]);
-                }
-                printf("\n");
-            }
-
+            output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i]);
             /***********************************************
              *
              *
@@ -551,125 +545,111 @@ int main(int argc, char **argv) {
              *
              **********************************************/
 
-            printf("********** W update ****************\n\n");
+            // printf("********** W update ****************\n\n");
+            
             tensor<1> WPL_10 = gemv(WPmp[all][range(i)], LPpp[i][range(i)]);
-            WPmp[all][i] = (YPmp[all][i]) / LPpp[i][i];
-            // WPmp[all][i] = (YPmp[all][i] - gemv(WPmp[all][range(i)], LPpp[i][range(i)])) * (1 / LPpp[i][i]);
+            PROFILE_SECTION("W update")
+            WPmp[all][i] = (YPmp[all][i] - gemv(WPmp[all][range(i)], LPpp[i][range(i)])) * (1 / LPpp[i][i]);
+            PROFILE_STOP
 
-            // printf("********** WPmp **********\n");
-            // for(auto k = 0; k < 10; k++)
-            // {
-            //     for(auto l = 0; l <= i; l++)
-            //     {
-            //         printf("%.10f, ", WPmp[k][l]);
-            //     }
-            //     printf("\n");
-            // }
-           
 
-            // /************************************************
-            //  *          T    
-            //  *  Update d part
-            //  *   T    T                 T
-            //  *  d += Y \Delta W \Delta W
-            //  * O*M  O*M      M*1      1*M
-            //  *  
-            //  *************************************************/
-            printf("********** DT update ****************\n\n");
-            // printf("********** after  dT **********\n");
-            // for(auto k = 0; k < 5; k++)
-            // {
-            //     for(auto l = 0; l < 5; l++)
-            //     {
-            //         printf("%.9f, ", dTPom[k][l]);
-            //     }
-            //     printf("\n");
-            // }
-
-           
+            /************************************************
+             *          T    
+             *  Update d part
+             *   T    T                 T
+             *  d += Y \Delta W \Delta W
+             * O*M  O*M      M*1      1*M
+             *  
+             *************************************************/
             tensor<1> YTW = gemv(YT, WPmp[all][i]);
-            ger(1.0, YTW, WPmp[all][i], 1.0, dTPom);            
-
-            // printf("********** after  dT **********\n");
-            // for(auto k = 0; k < 5; k++)
-            // {
-            //     for(auto l = 0; l < 5; l++)
-            //     {
-            //         printf("%.9f, ", dTPom[k][l]);
-            //     }
-            //     printf("\n");
-            // }
-           
-
-            // /******************************************
-            //  * 
-            //  * Verify the correctness of the above code
-            //  *
-            //  * ***************************************/
+            PROFILE_SECTION("dT update")
+            ger(1.0, YTW, WPmp[all][i], 1.0, dTPom);
+            PROFILE_STOP
 
 
-            // /******************************************
-            //  *
-            //  *  g\DeltaW = (gY[idx] - gWP l_10) / lambda
-            //  * M*1         M*1       M*P P*1 
-            //  * 
-            //  *  For the first step, l_10 is empty.
-            //  *  g\Deltaw = gY[idx]
-            //  *****************************************/
-            
-            
-            printf("********** GW update ****************\n\n");
+
+            /******************************************
+             * 
+             * Verify the correctness of the above code
+             *
+             * ***************************************/
+
+
+            /******************************************
+             *
+             *  g\DeltaW = (gY[idx] - gWP l_10) / lambda
+             * M*1         M*1       M*P P*1 
+             * 
+             *  For the first step, l_10 is empty.
+             *  g\Deltaw = gY[idx]
+             *****************************************/
+
+            PROFILE_SECTION("gCWp update")
             gCWPmp[all][i] = (gCY[all][idx] - gemv(gCWPmp[all][range(i)], LPpp[i][range(i)])) / (LPpp[i][i]);       
+            PROFILE_STOP
+
+            PROFILE_SECTION("gXWp update")
             gXWPmp[all][i] = (gXY[all][idx] - gemv(gXWPmp[all][range(i)], LPpp[i][range(i)])) / (LPpp[i][i]);       
+            PROFILE_STOP
 
-            // /******************************************
-            //  *   T             T          T
-            //  *  t \Delta W = (t Y[idx] - t WP l_10) / lambda
-            //  * M*1         M*1       M*P P*1 
-            //  * 
-            //  *  For the first step, l_10 is empty.
-            //  *  t\Deltaw = tY[idx]
-            //  *
-            //  *   T           T
-            //  *  t \Deltaw = t Y[idx]
-            //  *****************************************/
-            printf("********** TW update ****************\n\n");
+
+            /******************************************
+             *   T             T          T
+             *  t \Delta W = (t Y[idx] - t WP l_10) / lambda
+             * M*1         M*1       M*P P*1 
+             * 
+             *  For the first step, l_10 is empty.
+             *  t\Deltaw = tY[idx]
+             *
+             *   T           T
+             *  t \Deltaw = t Y[idx]
+             *****************************************/
+           
+            PROFILE_SECTION("tWp update")
             tWPmp[all][i] = (tY[all][idx] - gemv(tWPmp[all][range(i)], LPpp[i][range(i)])) / (LPpp[i][i]);       
+            PROFILE_STOP
+
+            PROFILE_SECTION("tTWp update")
             tTWPmp[all][i] = (tTY[all][idx] - gemv(tTWPmp[all][range(i)], LPpp[i][range(i)])) / (LPpp[i][i]);       
-            // tWPmp[all][i] = tY[all][idx];       
-            // tTWPmp[all][i] = tTY[all][idx];       
+            PROFILE_STOP
 
 
-
-
-            // /******************************************
-            //  *
-            //  * gd update 
-            //  *                        T         T
-            //  *  gd + =  g \Delta W  (Y \Delta W) 
-            //  *  M*O    M*M      M*1 O*M      M*1     
-            //  *****************************************/
-            printf("********** gd update ****************\n\n");
+            /******************************************
+             *
+             * gd update 
+             *                        T         T
+             *  gd + =  g \Delta W  (Y \Delta W) 
+             *  M*O    M*M      M*1 O*M      M*1     
+             *****************************************/
+            PROFILE_SECTION("gCd update")
             ger(1.0, gCWPmp[all][i], YTW, 1.0, gCdPmo); 
+            PROFILE_STOP
+
+            PROFILE_SECTION("gXd update")
             ger(1.0, gXWPmp[all][i], YTW, 1.0, gXdPmo); 
+            PROFILE_STOP
 
 
-            // /******************************************
-            //  *
-            //  * td update 
-            //  *                        T         T
-            //  *  td + =  t \Delta W  (Y \Delta W) 
-            //  *  M*O    M*M      M*1 O*M      M*1     
-            //  *****************************************/
-            printf("********** td update ****************\n\n");
+            /******************************************
+             *
+             * td update 
+             *                        T         T
+             *  td + =  t \Delta W  (Y \Delta W) 
+             *  M*O    M*M      M*1 O*M      M*1     
+             *****************************************/
+            PROFILE_SECTION("td update")
             ger(1.0, tWPmp[all][i] ,YTW, 1.0, tdPmo); 
+            PROFILE_STOP
 
-            printf("********** td update done ****************\n\n");
-            printf("Selected Point : %d \n", idx);
          }
     
-    printf("hello world\n\n");
-    printf("Selected Point : %d \n", idx);
+        printf("Selected Point : %d \n", idx);
 
     }
+    // pvt_to_file(pvt);
+    //
+    printf("Total Energy = %.10f\n", total_E);
+
+    timer::print_timers();
+
 }

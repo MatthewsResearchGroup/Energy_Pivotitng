@@ -19,6 +19,8 @@ struct Jobinfo
     int num_pairs;
     int seed = (int) time(nullptr);
     std::string method;
+    std::string molecule;
+    std::string basis;
     std::string curr_working_path;
     std::string path_to_orb;
     std::string path_to_grid;
@@ -37,6 +39,8 @@ struct Jobinfo
     int validate() const;
 
     void set_method(const std::string& cal_method);
+    void set_molecule(const std::string& mol);
+    void set_basis(const std::string& bas);
     void set_work_path();
     void set_orb_path();
     void set_grid_path();
@@ -103,7 +107,6 @@ void Jobinfo::set_work_path()
     curr_working_path = std::filesystem::current_path();
 }
 
-
 /*******************************************
  * get the calculation method
  *
@@ -113,6 +116,15 @@ void Jobinfo::set_method(const std::string& cal_method)
     method = cal_method;
 }
 
+void Jobinfo::set_molecule(const std::string& mol)
+{
+    molecule = mol;
+}
+
+void Jobinfo::set_basis(const std::string& bas)
+{
+    basis = bas;
+}
 
 /*******************************************
  * set_orb_path(std::string&)
