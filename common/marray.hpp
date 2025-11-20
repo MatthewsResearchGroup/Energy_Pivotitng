@@ -23,6 +23,7 @@
 
 #define ERROR(...) do { fprintf(stderr, __VA_ARGS__); abort(); } while (0)
 
+
 using MArray::slice::all;
 using MArray::slice::bcast;
 using MArray::range;
@@ -1784,5 +1785,7 @@ inline void decompose(const cview<2>& A, tensor<2>& U, tensor<2>& V, tensor<1>& 
     U.resize({m,k});
     V.resize({n,k});
 }
+
+
 
 #endif

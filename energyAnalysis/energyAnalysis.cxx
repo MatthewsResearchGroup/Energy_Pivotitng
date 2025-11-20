@@ -6,6 +6,7 @@
 #include "tensor_ops.hpp"
 #include "pair_points.hpp"
 #include "qc_utility.hpp"
+#include "cond.hpp"
 
 #include "docopt.h"
 
@@ -196,7 +197,14 @@ int main(int argc, char **argv) {
     double total_EX = 0.0;
     double total_E = 0.0;
 
-    int num_grid_keep = nps;
+    int num_grid_keep = (norb * 8 < nps)? norb * 8 : nps;
+
+    double cond = 1.0;
+
+
+    // constract a cond number estimator class
+    triangular_condition_number_estimator cond_num_esti(nps);
+
     for(int i = 0; i < num_grid_keep; i++)
     {
         int idx;
@@ -243,8 +251,10 @@ int main(int argc, char **argv) {
             tensor<1> Eo = E8Co + E8Xo;
 
             std::cout << "Ene Piv: EX, EC = " << E8Co[i] << ", " << E8Xo[i]  << std::endl;  
-            idx = pivot_ene(Eo, selected_points, pvt);
-            //idx = i;
+            if (getenv("CHOL"))
+                idx = i;
+            else
+                idx = pivot_ene(Eo, selected_points, pvt);
             
             double ECs = E8Co[idx];
             double EXs = E8Xo[idx];
@@ -290,8 +300,11 @@ int main(int argc, char **argv) {
              ***********************************************/
             
             LPpp[i][i] = sqrt(S[idx][idx]);
+            double cond = cond_num_esti.update(LPpp[i][range(i+1)]);
+            // double cond = 1.0;
 
-            output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i]);
+            //output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i]);
+            output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i], cond);
             // for(auto k = 0; k <= i; k++)
             // {
             //     for(auto l = 0; l <= i; l++)
@@ -467,8 +480,10 @@ int main(int argc, char **argv) {
 
             tensor<1> Eo = E4Co + E8Co + E4Xo + E8Xo; 
 
-            idx = pivot_ene(Eo, selected_points, pvt);
-            // idx = i;
+            if (getenv("CHOL"))
+                idx = i;
+            else
+                idx = pivot_ene(Eo, selected_points, pvt);
 
             double ECs = EC[idx];
             double EXs = EX[idx];
@@ -514,7 +529,7 @@ int main(int argc, char **argv) {
              *
              *
              ***********************************************/
-
+            // double cond;
             PROFILE_SECTION("L update")
             auto YPTYS = gemv(YPmp[all][range(i)].T(), YPmp[all][i]); 
 
@@ -527,9 +542,34 @@ int main(int argc, char **argv) {
 
             LPpp[i][range(i)] = YPTYS;
             LPpp[i][i] = sqrt(S[idx][idx] - dot(LPpp[i][range(i)], LPpp[i][range(i)]));
+
+
+            // cond = cond_num_esti.update(LPpp[i][range(i+1)]);
+            if (i % 20 == 0)
+            { 
+                char jobu = 'N';
+                char jobvt = 'N';
+                int m = i + 1;
+                int n = i + 1;
+                int lda = i + 1;
+                tensor<1> s{n};
+                tensor<2> u{m, n};
+                int ldu = i + 1;
+                tensor<2> vt{n, n};
+                int ldvt = i + 1;
+                tensor<2> A = LPpp[range(i+1)][range(i+1)];
+
+                int info = c_dgesvd( jobu, jobvt, m, n, A.data(), lda, s.data(), u.data(),
+                                     ldu, vt.data(), ldvt);
+
+                cond = max<double>(s) / min<double>(s);
+            }
+            // printf("info, max(s), min(s) = %d, %f, %f, \n", info, max<double>(s), min<double>(s));
+
             PROFILE_STOP
 
-            output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i]);
+            //output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i]);
+            output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i], cond);
             /***********************************************
              *
              *
