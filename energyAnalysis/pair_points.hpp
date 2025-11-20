@@ -19,7 +19,7 @@
 #include "jobinfo.hpp"
 #include "marray.hpp"
 
-#include "randutils.hpp"
+//#include "randutils.hpp"
 
 #include <vector>
 #include <utility>
@@ -34,35 +34,35 @@
  * included just as reapeats (1,2), (1,2), (2,1) are 
  * included 
 ********************************************/
-pair_list make_random_pairs(const int num_pairs, const int num_points, const int in_seed)
-{
-    randutils::seed_seq_fe256 seed{in_seed};
-    randutils::mt19937_rng rng{seed};
-
-    printf("\nInitializing random pair list with seed : %d\n",in_seed);
-
-    pair_list pairs;
-    pairs.reserve(num_pairs);
-
-    // pairs.emplace_back(2,11);
-    // pairs.emplace_back(5,9);
-    // pairs.emplace_back(14,3);
-    for (auto pair : range(num_pairs)) 
-    {
-        auto i = rng.uniform(0,num_points-1), j = rng.uniform(0,num_points-1);
-        // auto i = 2, j = rng.uniform(0,num_points-1);
-        while (i == j)
-        {
-            i = rng.uniform(0,num_points-1);
-            j = rng.uniform(0,num_points-1);   
-        }
-        pairs.emplace_back(i, j);
-        // pairs.emplace_back(rng.uniform(0,num_points-1),rng.uniform(0,num_points-1));   
-    }
-
-    return pairs;
-}
-
+// pair_list make_random_pairs(const int num_pairs, const int num_points, const int in_seed)
+// {
+//     randutils::seed_seq_fe256 seed{in_seed};
+//     randutils::mt19937_rng rng{seed};
+// 
+//     printf("\nInitializing random pair list with seed : %d\n",in_seed);
+// 
+//     pair_list pairs;
+//     pairs.reserve(num_pairs);
+// 
+//     // pairs.emplace_back(2,11);
+//     // pairs.emplace_back(5,9);
+//     // pairs.emplace_back(14,3);
+//     for (auto pair : range(num_pairs)) 
+//     {
+//         auto i = rng.uniform(0,num_points-1), j = rng.uniform(0,num_points-1);
+//         // auto i = 2, j = rng.uniform(0,num_points-1);
+//         while (i == j)
+//         {
+//             i = rng.uniform(0,num_points-1);
+//             j = rng.uniform(0,num_points-1);   
+//         }
+//         pairs.emplace_back(i, j);
+//         // pairs.emplace_back(rng.uniform(0,num_points-1),rng.uniform(0,num_points-1));   
+//     }
+// 
+//     return pairs;
+// }
+// 
 /********************************************
  *  make_Y2_all
  *

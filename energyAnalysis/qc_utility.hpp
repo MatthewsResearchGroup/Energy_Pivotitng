@@ -181,4 +181,134 @@ void sym_check(const view<2>& mat,
     printf("Symmetry cheking is done!\n");
 }
 
+double E1(const view<4>& V1, const view<4>& V2, const view<1>& FA, const view<1>& FI) //Vc,Vc gives half coulomb. Vc and Vx gives -exchange
+{
+    auto sum = 0.0;
+    auto& sizes = V1.lengths();
+    auto nv = sizes[0];
+    auto no = sizes[1];
+
+    #pragma omp parallel for collapse(3), reduction(+:sum)
+    for (auto j = 0;j < no;j++)
+    for (auto b = 0;b < nv;b++)
+    for (auto i = 0;i < no;i++)
+    {
+        auto fijb = FI[i] + FI[j] - FA[b];
+        auto v1 = &V1[0][i][b][j];
+        auto v2 = &V2[0][i][b][j];
+        auto fa = &FA[0];
+
+        #pragma omp simd
+        for (int a = 0;a < nv;a++)
+            sum += v1[a] * (v2[a]) / (fijb - fa[a]);
+    }
+
+    return sum;
+}
+
+double E1(const view<4>& V1, const view<4>& V2, const view<1>& FA, const view<1>& FI, const view<4>& C) // E calculation for MP3, read the second order amplitude from file and calculate the first order using vaibj/ (fi + fj - fa -fb)
+{
+    auto sum = 0.0;
+    auto& sizes = V1.lengths();
+    auto nv = sizes[0];
+    auto no = sizes[1];
+
+    #pragma omp parallel for collapse(3), reduction(+:sum)
+    for (auto j = 0;j < no;j++)
+    for (auto b = 0;b < nv;b++)
+    for (auto i = 0;i < no;i++)
+    {
+        auto fijb = FI[i] + FI[j] - FA[b];
+        auto v1 = &V1[0][i][b][j];
+        auto v2 = &V2[0][i][b][j];
+        auto fa = &FA[0];
+        auto c = &C[0][i][b][j];
+
+        #pragma omp simd
+        for (int a = 0;a < nv;a++)
+            sum += v2[a] * ((v1[a]) / (fijb - fa[a]) + c[a]) ;
+    }
+
+    return sum;
+}
+
+
+double E1(const view<4>& V, const view<4>& C)
+{
+    auto sum = 0.0;
+    auto& sizes = V.lengths();
+    auto nv = sizes[0];
+    auto no = sizes[1];
+
+    #pragma omp parallel for collapse(3), reduction(+:sum)
+    for (auto j = 0;j < no;j++)
+    for (auto b = 0;b < nv;b++)
+    for (auto i = 0;i < no;i++)
+    {
+        auto c = &C[0][i][b][j];
+        auto v = &V[0][i][b][j];
+
+        #pragma omp simd
+        for (int a = 0;a < nv;a++)
+            sum += c[a] * v[a];
+    }
+
+    return sum;
+}
+
+
+std::vector<double> E1_no_grid(const view<4>& V, const view<1>& FA, const view<1>& FI)
+{
+    auto sumC = 0.0;
+    auto sumE = 0.0;
+    auto& sizes = V.lengths();
+    auto nv = sizes[0];
+    auto no = sizes[1];
+
+    //#pragma omp parallel for collapse(3), reduction(+:sum)
+    for (auto j = 0;j < no;j++)
+    for (auto b = 0;b < nv;b++)
+    for (auto i = 0;i < no;i++)
+    {
+        auto fijb = FI[i] + FI[j] - FA[b];
+        auto v1 = &V[0][i][b][j];
+        auto v2 = &V[0][j][b][i];
+        auto fa = &FA[0];
+
+       // #pragma omp simd
+        for (int a = 0;a < nv;a++){
+            sumC += v1[a];
+            sumE += (2*v1[a] - v2[a]);
+        }
+    }
+    std::vector<double> energies;//{sumC,sumE};
+    energies.push_back(sumC);
+    energies.push_back(sumE);
+    return energies;
+}
+
+double E2(const view<4>& V, const view<4>& C)
+{
+    auto sum = 0.0;
+    auto& sizes = V.lengths();
+    auto nv = sizes[0];
+    auto no = sizes[1];
+
+    #pragma omp parallel for collapse(3), reduction(+:sum)
+    for (auto j = 0;j < no;j++)
+    for (auto b = 0;b < nv;b++)
+    for (auto i = 0;i < no;i++)
+    {
+        auto c = &C[0][i][b][j];
+        auto v1 = &V[0][i][b][j];
+        auto v2 = &V[0][j][b][i];
+
+        #pragma omp simd
+        for (int a = 0;a < nv;a++)
+            sum += c[a] * (2*v1[a] - v2[a]);
+    }
+
+    return sum;
+}
+
 #endif

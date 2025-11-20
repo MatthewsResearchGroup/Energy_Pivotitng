@@ -1,18 +1,18 @@
 TORCH=0
 CXX=g++
-CXXFLAGS=-fopenmp -std=c++17 -g -O0 -DDEBUG -Wno-unused-result -DTORCH=$(TORCH) -I/work/group/matthewsgroup/apps/docopt.cpp
+CXXFLAGS=-fopenmp -std=c++20 -g -O0 -DDEBUG -Wno-unused-result -DTORCH=$(TORCH) -I../build/docopt.cpp/include/docopt/
 BLAS=-lblas
 LAPACK=-llapack
-LDFLAGS=-fopenmp
-LIBS=-lm -ldl /work/group/matthewsgroup/apps/docopt.cpp/libdocopt.a 
+LDFLAGS=-fopenmp -L../build/docopt.cpp/lib 
+LIBS=-lm -ldocopt
 
 #
 # Use optimized flags and libraries on M2
 #
 ifeq ($(patsubst m3login%,m3login,$(shell hostname)),m3login)
 	CXX=g++
-	CXXFLAGS=-fopenmp -std=c++17 -march=haswell -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS
-	LDFLAGS=-fopenmp -fsanitize=address
+	CXXFLAGS=-fopenmp -std=c++20 -march=haswell -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS -DPROFILE
+	LDFLAGS=-fopenmp -fsanitize=address -L../build/docopt.cpp/lib
 	BLAS=-lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core
 	LAPACK=
 	TORCH_DIR=~/group/apps/libtorch
@@ -24,8 +24,7 @@ else
 endif
 
 CXXFLAGS+=-I../common
-CXXFLAGS+=-I/work/group/matthewsgroup/apps/docopt.cpp
-CXXFLAGS+=-I/work/group/matthewsgroup/apps/randutils
+CXXFLAGS+=-I../build/docopt.cpp/include/docopt/
 
 ifeq ($(TORCH),1)
 	CXXFLAGS+=-I$(TORCH_DIR)/include -I$(TORCH_DIR)/include/torch/csrc/api/include

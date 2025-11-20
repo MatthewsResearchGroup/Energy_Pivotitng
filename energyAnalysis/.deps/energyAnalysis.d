@@ -16,10 +16,9 @@ energyAnalysis.o: energyAnalysis.cxx energyAnalysis.hpp \
  ../common/../marray/include/varray_view.hpp \
  ../common/../marray/include/varray_base.hpp \
  ../common/../marray/include/viterator.hpp input.hpp jobinfo.hpp \
- /work/group/matthewsgroup/apps/docopt.cpp/docopt.h \
- /work/group/matthewsgroup/apps/docopt.cpp/docopt_value.h io.hpp \
- tensor_ops.hpp pair_points.hpp \
- /work/group/matthewsgroup/apps/randutils/randutils.hpp qc_utility.hpp
+ ../build/docopt.cpp/include/docopt/docopt.h \
+ ../build/docopt.cpp/include/docopt/docopt_value.h io.hpp tensor_ops.hpp \
+ pair_points.hpp qc_utility.hpp ../common/cond.hpp ../common/marray.hpp
 energyAnalysis.hpp:
 ../common/marray.hpp:
 ../common/aligned_allocator.hpp:
@@ -44,10 +43,11 @@ energyAnalysis.hpp:
 ../common/../marray/include/viterator.hpp:
 input.hpp:
 jobinfo.hpp:
-/work/group/matthewsgroup/apps/docopt.cpp/docopt.h:
-/work/group/matthewsgroup/apps/docopt.cpp/docopt_value.h:
+../build/docopt.cpp/include/docopt/docopt.h:
+../build/docopt.cpp/include/docopt/docopt_value.h:
 io.hpp:
 tensor_ops.hpp:
 pair_points.hpp:
-/work/group/matthewsgroup/apps/randutils/randutils.hpp:
 qc_utility.hpp:
+../common/cond.hpp:
+../common/marray.hpp:

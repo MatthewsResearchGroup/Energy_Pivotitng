@@ -1,0 +1,10 @@
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/lib/libdocopt.a
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/include/docopt/docopt.h
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/include/docopt/docopt_private.h
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/include/docopt/docopt_util.h
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/include/docopt/docopt_value.h
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/lib/cmake/docopt/docopt-config.cmake
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/lib/cmake/docopt/docopt-config-version.cmake
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/lib/cmake/docopt/docopt-targets.cmake
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/lib/cmake/docopt/docopt-targets-noconfig.cmake
+/users/chaoy/src/LinearAlgebra/docopt.cpp/../build/docopt.cpp/lib/pkgconfig/docopt.pc

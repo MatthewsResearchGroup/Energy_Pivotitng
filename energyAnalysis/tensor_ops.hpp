@@ -20,6 +20,9 @@
 #include "marray.hpp"
 
 #include <cmath>
+#include <queue>
+#include <utility>
+#include <type_traits>
 
 /*****************************************************
  * L2_normalize
@@ -210,6 +213,65 @@ int pivot_ene(tensor<1>& Eo, std::set<int>& sel_ps, std::vector<int>& pvt)
     sel_ps.insert(idx);
     pvt.push_back(idx);
     return idx;
+}
+
+std::vector<int> pivot_ene(tensor<1>& Eo, std::set<int>& sel_ps, std::vector<int>& pvt, int NUM_PS)
+{
+    std::priority_queue<std::pair<double, int>, std::vector<std::pair<double, int>>, decltype([](std::pair<double, int> a, std::pair<double, int> b){return a.first < b.first;})> pq;
+
+    int n = Eo.length(0);
+
+    for(int i = 0; i < n; i++)
+    {
+        if (sel_ps.count(i) == 0)
+        {
+            pq.push({Eo[i], i});
+        }
+    }
+    
+    std::vector<int> piv_iter;
+
+    while(NUM_PS)
+    {
+        int idx = pq.top().second;
+        piv_iter.push_back(idx);
+        pq.pop();
+    }
+    
+    return piv_iter;
+}
+
+template<typename T>
+T max(tensor<1>& A)
+{
+    T max_val = INT_MIN;
+    int n = A.length(0);
+
+    for(int i = 0; i < n; i++)
+    {
+        if (max_val < A[i])
+        {
+            max_val = A[i];
+        }
+    }
+    return max_val;
+}
+
+
+template<typename T>
+T min(tensor<1>& A)
+{
+    T min_val = INT_MAX;
+    int n = A.length(0);
+
+    for(int i = 0; i < n; i++)
+    {
+        if (min_val > A[i] && A[i] > 0.0)
+        {
+            min_val = A[i];
+        }
+    }
+    return min_val;
 }
 
 #endif

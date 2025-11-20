@@ -395,4 +395,168 @@ void output_to_csv(const Jobinfo& jobinfo,
     // close the file if it's the last element in the points set vector. 
     fclose(out_csv);
 }
+
+
+/***************************************************
+ * output_to_csv
+ *
+ * writes the output of the calculation to a files called
+ * partialGridEnergyAnalysis.csv
+***************************************************/
+void output_to_csv(const Jobinfo& jobinfo, int& grid,
+              int& ngrid,        int& norb,
+              double& Ec_exact,  double& Ex_exact,
+              double& Ec_THC_s, double& Ex_THC_s,
+              double& Ec_THC,    double& Ex_THC,
+              double& diag)
+              // double& PErr_c,    double& PErr_x,
+              // double& PErrxminsc)
+{
+    std::string filename = "partialenergyanalysis_" + jobinfo.method + "_" + jobinfo.basis  + ".csv";  
+
+    auto out_csv = fopen(filename.c_str(), "a+");
+
+    if (!out_csv)
+    {
+        printf("\nERROR: could not open %s for output\n",filename.c_str());
+        exit(1);
+    }
+
+    // Generate formatting for output
+    std::string header   = "Molecule,Method";
+    std::string values_f = "%s,%s";
+
+    header    += ",Basis,pointsel";
+    values_f  += ",%s,%6d";
+
+    header    += ",ngrid,norb";
+    values_f  += ",%6d,%6d";
+
+    header    += ",Ec_exact,Ex_exact";
+    values_f  += ",%e,%e";
+
+    header    += ",Ec_THC_s,Ex_THC_s";
+    values_f  += ",%e,%e";
+
+    header    += ",Ec_THC,Ex_THC";
+    values_f  += ",%e,%e";
+
+    header    += ",Diag";
+    values_f  += ",%e";
+    // header    += ",PErr_c,PErr_c";
+    // values_f  += ",%e,%e";
+
+    // header    += ",PErrxminsc";
+    // values_f  += ",%e";
+
+
+    values_f  += "\n";
+
+
+    if (std::filesystem::is_empty(filename))
+        fprintf(out_csv,"%s\n",header.c_str());
+
+    fprintf(out_csv, values_f.c_str(),
+            jobinfo.molecule.c_str(),  jobinfo.method.c_str(),
+            jobinfo.basis.c_str(),     grid,
+            ngrid,                     norb,
+            Ec_exact,                  Ex_exact,
+            Ec_THC_s,                  Ex_THC_s,
+            Ec_THC,                    Ex_THC,
+            diag);
+
+    fclose(out_csv);
+}
+
+
+/***************************************************
+ * output_to_csv
+ *
+ * writes the output of the calculation to a files called
+ * partialGridEnergyAnalysis.csv
+***************************************************/
+void output_to_csv(const Jobinfo& jobinfo, int& grid,
+              int& ngrid,        int& norb,
+              double& Ec_exact,  double& Ex_exact,
+              double& Ec_THC_s,  double& Ex_THC_s,
+              double& Ec_THC,    double& Ex_THC,
+              double& diag,      double& cond)
+              // double& PErr_c,    double& PErr_x,
+              // double& PErrxminsc)
+{
+    std::string filename = "partialenergyanalysis_" + jobinfo.method + "_" + jobinfo.basis  + ".csv";  
+
+    auto out_csv = fopen(filename.c_str(), "a+");
+
+    if (!out_csv)
+    {
+        printf("\nERROR: could not open %s for output\n",filename.c_str());
+        exit(1);
+    }
+
+    // Generate formatting for output
+    std::string header   = "Molecule,Method";
+    std::string values_f = "%s,%s";
+
+    header    += ",Basis,pointsel";
+    values_f  += ",%s,%6d";
+
+    header    += ",ngrid,norb";
+    values_f  += ",%6d,%6d";
+
+    header    += ",Ec_exact,Ex_exact";
+    values_f  += ",%e,%e";
+
+    header    += ",Ec_THC_s,Ex_THC_s";
+    values_f  += ",%e,%e";
+
+    header    += ",Ec_THC,Ex_THC";
+    values_f  += ",%e,%e";
+
+    header    += ",Diag,Cond";
+    values_f  += ",%e,%e";
+    // header    += ",PErr_c,PErr_c";
+    // values_f  += ",%e,%e";
+
+    // header    += ",PErrxminsc";
+    // values_f  += ",%e";
+
+
+    values_f  += "\n";
+
+
+    if (std::filesystem::is_empty(filename))
+        fprintf(out_csv,"%s\n",header.c_str());
+
+    fprintf(out_csv, values_f.c_str(),
+            jobinfo.molecule.c_str(),  jobinfo.method.c_str(),
+            jobinfo.basis.c_str(),     grid,
+            ngrid,                     norb,
+            Ec_exact,                  Ex_exact,
+            Ec_THC_s,                  Ex_THC_s,
+            Ec_THC,                    Ex_THC,
+            diag,                      cond);
+
+    fclose(out_csv);
+}
+
+
+void pvt_to_file(const std::vector<int>& pvt)
+{
+    std::string filename = "pvt.dat";
+
+    auto out_csv = fopen(filename.c_str(),"a+");
+
+    if (!out_csv) 
+    {
+        printf("\nERROR: could not open %s for output\n",filename.c_str());
+        exit(1);
+    }
+
+    for (auto num : pvt)
+    {
+        fprintf(out_csv, "%d\n",  num);
+    }
+
+}
 #endif
