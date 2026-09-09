@@ -31,6 +31,10 @@ struct Jobinfo
     std::string path_to_xi;
     std::string path_to_v;
     std::string path_to_t;
+// Change #1: add the new fields to the struct
+    std::string path_to_coords;
+    double pair_dist_min = 1.0; // a.u. 
+    double pair_dist_max = 3.0; // a.u. 
 
     enum class Ftypes { all, cross, nocross };
     Ftypes ftype;
@@ -44,6 +48,8 @@ struct Jobinfo
     void set_work_path();
     void set_orb_path();
     void set_grid_path();
+// Change #2: declare a setter, next to set_grid_path()
+    void set_coords_path();
     void set_t_path();
     //void set_points_set_path(const std::string& path);
 };
@@ -155,6 +161,12 @@ void Jobinfo::set_grid_path()
     path_to_xi = path_to_grid + std::string{"/XI.dat"};
 }
 
+// Change #3: implement it, right after set_grid_path()'s definition
+
+void Jobinfo::set_coords_path() 
+{
+    path_to_coords = path_to_grid + std::string{"/coords.dat"};
+}
 /*******************************************
  * set_amp_path(std::string&)
  *
