@@ -165,7 +165,7 @@ void Jobinfo::set_grid_path()
 
 void Jobinfo::set_coords_path() 
 {
-    path_to_coords = path_to_grid + std::string{"/coords.dat"};
+    path_to_coords = path_to_grid + std::string{"/grid.dat"};
 }
 /*******************************************
  * set_amp_path(std::string&)
