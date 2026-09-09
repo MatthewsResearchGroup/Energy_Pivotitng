@@ -124,7 +124,8 @@ int main(int argc, char **argv) {
     
     // PAIR-POINT EXTENSION: distance filtered candidate pairs + Y2
     // NEW file/fields needed: jobinfo.path_to_coords, pair_dist_min, pair_dist_max
-    auto coords = tensor_from_file(jobinfo.path_to_coords, sizeof(Int), nps, 3);
+    auto grid_data = tensor_from_file(jobinfo.path_to_coords, sizeof(Int), nps, 4);
+    auto coords =  grid_data[all][range(3)]; // nps * 3 (x, y, z)
     pair_list pairs = make_distance_pairs(coords, jobinfo.pair_dist_min, jobinfo.pair_dist_max);
     int npairs = (int) pairs.size();
     printf("npairs (after distance filter [%g, %g]) : %d \n",
