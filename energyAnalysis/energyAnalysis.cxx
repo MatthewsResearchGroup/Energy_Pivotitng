@@ -125,7 +125,7 @@ int main(int argc, char **argv) {
     // PAIR-POINT EXTENSION: distance filtered candidate pairs + Y2
     // NEW file/fields needed: jobinfo.path_to_coords, pair_dist_min, pair_dist_max
     auto coords = tensor_from_file(jobinfo.path_to_coords, sizeof(Int), nps, 3);
-    pair_list pairs = make_distance_pairs(coords, jobinfo.pair_dist_min, jobinfo.pair_dist_max):
+    pair_list pairs = make_distance_pairs(coords, jobinfo.pair_dist_min, jobinfo.pair_dist_max);
     int npairs = (int) pairs.size();
     printf("npairs (after distance filter [%g, %g]) : %d \n",
         jobinfo.pair_dist_min, jobinfo.pair_dist_max, npairs);
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
     tensor<2> YT_sp = krp(xpa[all][all], xpi[all][all]).lowered(1); // nps * nvo
     tensor<2> Y_sp  = YT_sp.T();  
     tensor<2> Y{nvo, ntot};
-    Y[all][range(nps)] = Y_single;
+    Y[all][range(nps)] = Y_sp;
 
     if (npairs > 0) Y[all][range(nps, ntot)] = Y2;
 
