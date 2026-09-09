@@ -5,6 +5,9 @@
 #include "io.hpp"
 #include "tensor_ops.hpp"
 #include "pair_points.hpp"
+// Change #1 : add one include
+#include "make_distance_pairs.hpp"
+
 #include "qc_utility.hpp"
 #include "cond.hpp"
 
@@ -117,6 +120,20 @@ int main(int argc, char **argv) {
     auto xpa = tensor_from_file(jobinfo.path_to_xa, sizeof(Int), nps, nv);
     auto xpi = tensor_from_file(jobinfo.path_to_xi, sizeof(Int), nps, no);
 
+// Change # 2: after reading xpa/xpi, add pair-candidate setup
+    
+    // PAIR-POINT EXTENSION: distance filtered candidate pairs + Y2
+    // NEW file/fields needed: jobinfo.path_to_coords, pair_dist_min, pair_dist_max
+    auto coords = tensor_from_file(jobinfo.path_to_coords, sizeof(Int), nps, 3);
+    pair_list pairs = make_distance_pairs(coords, jobinfo.pair_dist_min, jobinfo.pair_dist_max):
+    int npairs = (int) pairs.size();
+    printf("npairs (after distance filter [%g, %g]) : %d \n",
+        jobinfo.pair_dist_min, jobinfo.pair_dist_max, npairs);
+
+    tensor<2> Y2 = make_Y2(xpa, xpi, pairs, jobinfo); // nvo *  npairs
+    int ntot = nps + npairs;                            
+    
+
 /*
     printf("FAA tensor is...\n"); jht_print(faa); 
     printf("FII tensor is...\n"); jht_print(fii); 
@@ -145,8 +162,16 @@ int main(int argc, char **argv) {
     *   MP'      P'ai
     *
     ***************************************/
-    tensor<2> YT = krp(xpa[all][all], xpi[all][all]).lowered(1); // nps * nvo
-    tensor<2> Y  = YT.T();  // nvo * nps
+// Change #3: merge single + pair points into Y/YT/S
+    
+    tensor<2> YT_sp = krp(xpa[all][all], xpi[all][all]).lowered(1); // nps * nvo
+    tensor<2> Y_sp  = YT_sp.T();  
+    tensor<2> Y{nvo, ntot};
+    Y[all][range(nps)] = Y_single;
+
+    if (npairs > 0) Y[all][range(nps, ntot)] = Y2;
+
+    tensor<2> YT =Y.T(); // nvo * nps
     tensor<2> S = gemm(YT, Y); // nps, nps
 
     /****************************************
@@ -172,14 +197,15 @@ int main(int argc, char **argv) {
      *
      *
      ***************************************/
-    tensor<2> YPmp{nvo, nps};   
-    tensor<2> SPpp{nps, nps};
-    tensor<2> LPpp{nps, nps};
-    tensor<2> WPmp{nvo, nps};
-    tensor<2> gCWPmp{nvo, nps};
-    tensor<2> gXWPmp{nvo, nps};
-    tensor<2> tTWPmp{nvo, nps};  
-    tensor<2> tWPmp{nvo, nps};  // In the update of td, we also need tW.
+// Change #4: resize the per-iteration arrays (nps → ntot)
+    tensor<2> YPmp{nvo, ntot};   
+    tensor<2> SPpp{ntot, ntot};
+    tensor<2> LPpp{ntot, ntot};
+    tensor<2> WPmp{nvo, ntot};
+    tensor<2> gCWPmp{nvo, ntot};
+    tensor<2> gXWPmp{nvo, ntot};
+    tensor<2> tTWPmp{nvo, ntot};  
+    tensor<2> tWPmp{nvo, ntot};  // In the update of td, we also need tW.
 
     auto gCY = gemm(VCmm, Y);
     auto gXY = gemm(VXmm, Y);
@@ -197,13 +223,15 @@ int main(int argc, char **argv) {
     double total_EX = 0.0;
     double total_E = 0.0;
 
-    int num_grid_keep = (norb * 8 < nps)? norb * 8 : nps;
+// Change #5: num_grid_keep and the condition estimator (nps → ntot)
+    
+    int num_grid_keep = (norb * 8 < ntot)? norb * 8 : ntot;
 
     double cond = 1.0;
 
 
     // constract a cond number estimator class
-    triangular_condition_number_estimator cond_num_esti(nps);
+    triangular_condition_number_estimator cond_num_esti(ntot);
 
     for(int i = 0; i < num_grid_keep; i++)
     {
@@ -682,8 +710,13 @@ int main(int argc, char **argv) {
             PROFILE_STOP
 
          }
-    
-        printf("Selected Point : %d \n", idx);
+    // Change #6 : clarify which kind of point was picked
+        
+        if (idx < nps)
+            printf("Selected Point : %d (single) \n", idx);
+        else
+            printf("Selected Point : %d (pair: %d, %d) \n", idx, 
+                pairs[idx - nps].first, pairs[idx -nps].second);
 
     }
     // pvt_to_file(pvt);
