@@ -173,7 +173,7 @@ int main(int argc, char **argv) {
     if (npairs > 0) Y[all][range(nps, ntot)] = Y2;
 
     tensor<2> YT =Y.T(); // nvo * nps
-    tensor<2> S = gemm(YT, Y); // nps, nps
+    tensor<2> S = gemm(YT, Y); // ntot, ntot
 
     /****************************************
      * Here, we pre-define some intermedia matrices 
