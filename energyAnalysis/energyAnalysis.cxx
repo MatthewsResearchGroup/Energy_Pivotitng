@@ -303,9 +303,7 @@ int main(int argc, char **argv) {
 
             LPpp[i][i] = sqrt(S[idx][idx]);
 
-            // Note: this local 'cond' shadows the outer one, the CSV shows 1.0 untill step 20
-
-            double cond = cond_num_esti.update(LPpp[i][range(i+1)]);
+            cond = cond_num_esti.update(LPpp[i][range(i+1)]);
 
             output_to_csv(jobinfo, idx, ngrid, norb, E_exact_c, E_exact_x, ECs, EXs, total_EC, total_EX, LPpp[i][i], cond);
 
@@ -485,6 +483,10 @@ int main(int argc, char **argv) {
             LPpp[i][range(i)] = YPTYS;
             LPpp[i][i] = sqrt(S[idx][idx] - dot(LPpp[i][range(i)], LPpp[i][range(i)]));
 
+	    cond = cond_num_esti.update(LPpp[i][range(i+1)]);
+
+	    //
+
             if (i % 20 == 0)
             {
                 char jobu = 'N';
@@ -502,7 +504,8 @@ int main(int argc, char **argv) {
                 c_dgesvd( jobu, jobvt, m, n, A.data(), lda, s.data(), u.data(),
                         ldu, vt.data(), ldvt);
 
-                cond = max<double>(s) / min<double>(s);
+                printf("cond check at step %d: estimate = %.6e, SVD = %.6e\n",
+		       i, cond, max<double>(s) / min<double>(s));
             }
 
             PROFILE_STOP
@@ -1963,6 +1966,7 @@ int main(int argc, char **argv) {
                             dot(LPpp_7b[i][range(i)],
                                 LPpp_7b[i][range(i)])
                         );
+		cond_7b = cond_num_esti_7b.update(LPpp_7b[i][range(i + 1)]);
 
                 WPmp_7b[all][i] =
                     (YPmp_7b[all][i] -
