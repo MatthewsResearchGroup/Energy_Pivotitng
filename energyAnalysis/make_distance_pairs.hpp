@@ -3,7 +3,7 @@
 *
 * NEW - companion to pair_points.hpp, which currrently only offers a disabled make_random_pairs 
 * (commented out, depends on randutils.hpp) and has no distance-based candidate filtering at all.
-
+*/
 #ifndef _ENERGYANALYSIS_MAKE_DISTANCE_PAIRS_HPP_
 #define _ENERGYANALYSIS_MAKE_DISTANCE_PAIRS_HPP_
 
@@ -32,7 +32,7 @@ pair_list make_distance_pairs(const tensor<2>& coords,
                               const double dist_min,
                               const double dist_max)
 {
-    const auot npts = coords.length(0);
+    const auto npts = coords.length(0);
 
 printf("\nBuilding distance filtered pair list: [%g, %g] (coords units)\n",
       dist_min, dist_max);
@@ -43,8 +43,8 @@ pairs.reserve(npts * 8);
 for (auto p = 0; p < npts; p++)
 {
     const double px = coords[p][0];
-    const double py = coords[p][0];
-    const double pz = coords[p][0];
+    const double py = coords[p][1];
+    const double pz = coords[p][2];
 
     for (auto q = p + 1; q < npts; q++)
     {
