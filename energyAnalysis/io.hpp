@@ -480,11 +480,11 @@ void output_to_csv(const Jobinfo& jobinfo, int& grid,
               double& Ec_exact,  double& Ex_exact,
               double& Ec_THC_s,  double& Ex_THC_s,
               double& Ec_THC,    double& Ex_THC,
-              double& diag,      double& cond)
+              double& diag,      double& cond, const std::string& tag = "")
               // double& PErr_c,    double& PErr_x,
               // double& PErrxminsc)
 {
-    std::string filename = "partialenergyanalysis_" + jobinfo.method + "_" + jobinfo.basis  + ".csv";  
+    std::string filename = "partialenergyanalysis_" + jobinfo.method + "_" + jobinfo.basis  + tag + ".csv";  
 
     auto out_csv = fopen(filename.c_str(), "a+");
 

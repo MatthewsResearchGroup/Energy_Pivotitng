@@ -15,8 +15,8 @@
 ********************************************/
 struct Jobinfo
 {
-    int num_points;
-    int num_pairs;
+    int num_points = 0; //CHange
+    int num_pairs = 1; //change
     int seed = (int) time(nullptr);
     std::string method;
     std::string molecule;
@@ -35,6 +35,16 @@ struct Jobinfo
     std::string path_to_coords;
     double pair_dist_min = 1.0; // a.u. 
     double pair_dist_max = 3.0; // a.u. 
+    double chi1 = 2.0;
+    int n_pair = 10000;
+    int n_top = 3000;
+
+    double chi2a = 3.0;
+    double chi2b = 1.0;
+    double chi3b = 3.0;
+
+    std::string branch = "a";
+    std::string rank_energy = "total";
 
     enum class Ftypes { all, cross, nocross };
     Ftypes ftype;
