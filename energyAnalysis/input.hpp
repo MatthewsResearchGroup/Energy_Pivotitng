@@ -26,7 +26,7 @@ static const char USAGE[] =
 R"(EnergyAnalysis.
 
   Usage:
-    energyAnalysis --mol=<mol> --method=<method> --basis=<basis> [--ftype=<ftype>] [--dist-min=<dmin>] [--dist-max=<dmax>] [--chi1=<chi1>] [--n-pair=<n_pair>] [--n-top=<n_top>] [--chi2a=<chi2a>] [--chi2b=<chi2b>] [--chi3b=<chi3b>] [--branch=<branch>] [--rank-energy=<rank_energy>]
+    energyAnalysis --mol=<mol> --method=<method> --basis=<basis> [--ftype=<ftype>] [--dist-min=<dmin>] [--dist-max=<dmax>] [--chi1=<chi1>] [--n-pair=<n_pair>] [--n-top=<n_top>] [--chi2a=<chi2a>] [--chi2b=<chi2b>] [--chi3b=<chi3b>] [--branch=<branch>] [--rank-energy=<rank_energy>] [--seed=<seed>]
 
     energyAnalysis (-h | --help)
     energyAnalysis --version
@@ -45,6 +45,7 @@ R"(EnergyAnalysis.
      --chi3b=<chi3b> Final chi for branch B [default: 3.0].
      --branch=<branch> Workflow branch: a or b [default: a].
      --rank-energy=<rank_energy> Pair ranking: total or exchange [default: total].
+     --seed=<seed> random seed for pair
 
 )";
 
@@ -99,11 +100,10 @@ int parse_input(const std::map<std::string,docopt::value> args,
        if (arg.first == "--chi3b" && arg.second) {jobinfo.chi3b = std::stod(arg.second.asString());}
        if (arg.first == "--branch" && arg.second) jobinfo.branch = arg.second.asString();
        if (arg.first == "--rank-energy" && arg.second) jobinfo.rank_energy = arg.second.asString();
-
   
        
        //Seed options
-       // if (arg.first == "--seed" && arg.second) {jobinfo.seed = (int) arg.second.asLong();}
+       if (arg.first == "--seed" && arg.second) {jobinfo.seed = std::stoi(arg.second.asString());}
        // set relative path.
        jobinfo.set_work_path();
        jobinfo.set_orb_path();
