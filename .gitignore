@@ -1,5 +1,7 @@
 /bin/*
 /energyAnalysis/*.o
 /common/*.o
-/*/.deps/
+.deps/
 /build
+compile_flags.txt
+.vscode

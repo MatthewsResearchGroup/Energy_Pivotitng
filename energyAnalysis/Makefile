@@ -1,18 +1,17 @@
 TORCH=0
 CXX=g++
-CXXFLAGS=-fopenmp -std=c++20 -g -O0 -DDEBUG -Wno-unused-result -DTORCH=$(TORCH) -I../build/docopt.cpp/include/docopt/
+CXXFLAGS=-fopenmp -std=c++20 -g -O0 -DDEBUG -Wno-unused-result -DTORCH=$(TORCH)
 BLAS=-lblas
 LAPACK=-llapack
-LDFLAGS=-fopenmp -L../build/docopt.cpp/lib 
-LIBS=-lm -ldocopt
+LDFLAGS=-fopenmp
+LIBS=-lm
 
 #
 # Use optimized flags and libraries on M2
 #
 ifeq ($(patsubst m3login%,m3login,$(shell hostname)),m3login)
 	CXX=g++
-	CXXFLAGS=-fopenmp -std=c++20 -march=haswell -g -O0 -DDEBUG -fsanitize=address -DMARRAY_ENABLE_ASSERTS -DPROFILE
-	LDFLAGS=-fopenmp -fsanitize=address -L../build/docopt.cpp/lib
+	CXXFLAGS=-fopenmp -std=c++20 -march=haswell -g -O2 -DDEBUG-DMARRAY_ENABLE_ASSERTS -DTORCH=$(TORCH) -DPROFILE
 	BLAS=-lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core
 	LAPACK=
 	TORCH_DIR=~/group/apps/libtorch
@@ -24,7 +23,7 @@ else
 endif
 
 CXXFLAGS+=-I../common
-CXXFLAGS+=-I../build/docopt.cpp/include/docopt/
+CXXFLAGS+=-I../docopt.cpp/
 
 ifeq ($(TORCH),1)
 	CXXFLAGS+=-I$(TORCH_DIR)/include -I$(TORCH_DIR)/include/torch/csrc/api/include
@@ -39,8 +38,8 @@ ifeq ($(IS_APPLE),yes)
 endif
 
 exe:=../bin/pivoting
-src:=$(shell find . -iname "*.cxx") $(shell find ../common -iname "*.cxx")
-objs:=$(addsuffix .o, $(basename $(src)))
+src:=$(shell find . -iname "*.cxx") $(shell find ../common -iname "*.cxx") $(shell find ../docopt.cpp -iname "*.cxx")
+objs:=$(src:.cxx=.o)
 deps:=$(join $(addsuffix .deps/,$(dir $(objs))),$(notdir $(objs:.o=.d)))
 
 .PHONY: all
