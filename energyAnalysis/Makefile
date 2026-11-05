@@ -23,7 +23,7 @@ else
 endif
 
 CXXFLAGS+=-I../common
-CXXFLAGS+=-I../docopt.cpp/
+CXXFLAGS+=-I../docopt.cpp
 
 ifeq ($(TORCH),1)
 	CXXFLAGS+=-I$(TORCH_DIR)/include -I$(TORCH_DIR)/include/torch/csrc/api/include
